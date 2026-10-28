@@ -26,7 +26,7 @@ const log: Logger = winstonLogger(
 
 export function start(app: Application): void {
   startServer(app);
-  app.use("", healthRoute);
+  app.use(healthRoute());
   void checkConnection();
   void startQueues();
 }
