@@ -1,0 +1,27 @@
+# syntax=docker/dockerfile:1.10
+FROM node:24-alpine3.23 AS builder
+
+WORKDIR /app
+
+COPY package*.json ./
+COPY .npmrc .
+
+RUN --mount=type=secret,id=github_token,env=NODE_AUTH_TOKEN,required=true npm ci
+
+COPY . .
+
+RUN npm run build
+
+# --- Production Stage ---
+FROM node:24-alpine3.23
+
+WORKDIR /app
+
+COPY package*.json .
+COPY .npmrc .
+
+RUN --mount=type=secret,id=github_token,env=NODE_AUTH_TOKEN,required=true npm ci --omit=dev
+
+COPY --from=builder /app/build ./build
+EXPOSE 4001
+CMD ["npm", "run", "run:js"]
